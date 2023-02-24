@@ -6,15 +6,10 @@ webhooks:
 - name: deploy-anno.default.svc
   namespaceSelector:
     matchExpressions:
-      - key: name
-        operator: NotIn
-        values:
-        - kube-system
-        - istio-system
-      - key: name
+      - key: deploy-anno-webhook
         operator: In
         values:
-        - default
+        - eable
   rules:
   - apiGroups:
     - "apps"
