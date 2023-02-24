@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: deploy-anno
+  name: deploy-anno
+  namespace: default
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: deploy-anno
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      creationTimestamp: null
+      labels:
+        app: deploy-anno
+    spec:
+      containers:
+      - command:
+        - k8s-webhook-test
+        image: ccr.ccs.tencentyun.com/lzwk/ops-test:deploy-anno-v0.1
+        imagePullPolicy: Always
+        name: app
+        ports:
+        - containerPort: 8180
+          name: http
+          protocol: TCP
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health_check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 4
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health_check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 4
+        resources:
+          limits:
+            cpu: 1
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: qcloudregistrykey
+      schedulerName: default-scheduler
+      securityContext:
+        runAsUser: 0
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: deploy-anno
+  name: deploy-anno
+  namespace: default
+spec:
+  ipFamilies:
+  - IPv4
+  ports:
+  - name: http-80
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: deploy-anno
+  sessionAffinity: None
+  type: ClusterIP
