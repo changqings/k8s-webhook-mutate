@@ -21,6 +21,7 @@ spec:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
+        sidecar-injector-webhook.morven.me/inject: ""
       creationTimestamp: null
       labels:
         app: deploy-anno
@@ -35,8 +36,8 @@ spec:
         - containerPort: 8081
           name: http-check
           protocol: TCP
-        - containerPort: 8180
-          name: http
+        - containerPort: 8443
+          name: https
           protocol: TCP
         livenessProbe:
           failureThreshold: 3
@@ -87,10 +88,10 @@ spec:
   ipFamilies:
   - IPv4
   ports:
-  - name: http-80
-    port: 80
+  - name: https-443
+    port: 443
     protocol: TCP
-    targetPort: http
+    targetPort: https
   selector:
     app: deploy-anno
   sessionAffinity: None
