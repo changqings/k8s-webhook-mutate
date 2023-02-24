@@ -31,8 +31,6 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check not modify
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		sendError(err, w)
