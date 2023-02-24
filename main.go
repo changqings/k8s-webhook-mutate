@@ -15,6 +15,11 @@ var (
 	}
 )
 
+var (
+	tlsCrt = "config/tls/tls.crt"
+	tlsKey = "config/tls/tls.key"
+)
+
 func main() {
 
 	mux := http.NewServeMux()
@@ -33,6 +38,6 @@ func main() {
 		ReadTimeout: 20 * time.Second, WriteTimeout: 20 * time.Second,
 	}
 
-	log.Fatal(server.ListenAndServe())
+	log.Fatal(server.ListenAndServeTLS(tlsCrt, tlsKey))
 
 }
