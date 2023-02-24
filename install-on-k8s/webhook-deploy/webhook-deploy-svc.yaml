@@ -29,7 +29,7 @@ spec:
       containers:
       - command:
         - k8s-webhook-test
-        image: ccr.ccs.tencentyun.com/lzwk/ops-test:deploy-anno-v0.4
+        image: ccr.ccs.tencentyun.com/lzwk/ops-test:deploy-anno-v0.10
         imagePullPolicy: Always
         name: app
         ports:
@@ -45,8 +45,8 @@ spec:
             path: /health_check
             port: http-check
             scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 3
+          initialDelaySeconds: 10
+          periodSeconds: 15
           successThreshold: 1
           timeoutSeconds: 4
         readinessProbe:
@@ -55,8 +55,8 @@ spec:
             path: /health_check
             port: http-check
             scheme: HTTP
-          initialDelaySeconds: 20
-          periodSeconds: 10
+          initialDelaySeconds: 5
+          periodSeconds: 15
           successThreshold: 1
           timeoutSeconds: 4
         resources:

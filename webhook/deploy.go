@@ -8,9 +8,18 @@ import (
 	"log"
 	"net/http"
 
+	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+)
+
+var (
+	runtimeScheme = runtime.NewScheme()
+	codecs        = serializer.NewCodecFactory(runtimeScheme)
+	deserializer  = codecs.UniversalDeserializer()
 )
 
 type Deploy struct {
@@ -38,10 +47,10 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//
-	ar := v1.AdmissionReview{}
-	if err := json.Unmarshal(body, &ar); err != nil {
+	var ar admissionv1.AdmissionReview
+	arRes := admissionv1.AdmissionResponse{}
+	if _, _, err := deserializer.Decode(body, nil, &ar); err != nil {
 		sendError(err, w)
-		return
 	}
 
 	arReq := ar.Request
@@ -95,29 +104,31 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update arRes
-	patchTypeJson := v1.PatchTypeJSONPatch
-	arRes := &v1.AdmissionResponse{
-		Allowed:   true,
-		UID:       ar.Request.UID,
-		PatchType: &patchTypeJson,
-		Patch:     patchDeployByte,
+	arRes = &v1.AdmissionResponse{
+		Allowed: true,
+		UID:     ar.Request.UID,
+		Patch:   patchDeployByte,
 		Result: &metav1.Status{
 			Status: metav1.StatusSuccess,
 		},
 	}
 
-	// update arRes to w
-	responBody, err := json.Marshal(arRes)
+	// update ar to w
+	ar.Response = arRes
+
+	responBody, err := json.Marshal(ar)
 	if err != nil {
 		sendError(err, w)
 		return
 	}
 
+	// println res Body to check status
+	log.Printf("response body = %s", string(responBody))
 	if _, err := w.Write(responBody); err != nil {
 		sendError(err, w)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	log.Printf("Muta deployment %s/%s success", deploy.Namespace, deploy.Name)
 }
 
 func sendError(err error, w http.ResponseWriter) {
