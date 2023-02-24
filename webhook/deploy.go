@@ -31,6 +31,8 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// check not modify
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		sendError(err, w)
@@ -54,7 +56,7 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 
 	// try to get deployment object, and modify it
 	var deploy *appsv1.Deployment
-	if err := json.Unmarshal(arReq.Object.Raw, deploy); err != nil {
+	if err := json.Unmarshal(arReq.Object.Raw, &deploy); err != nil {
 		sendError(err, w)
 		return
 	}

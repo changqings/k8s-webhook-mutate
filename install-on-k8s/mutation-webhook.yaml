@@ -9,7 +9,7 @@ webhooks:
       - key: deploy-anno-webhook
         operator: In
         values:
-        - eable
+        - enable
   rules:
   - apiGroups:
     - "apps"
