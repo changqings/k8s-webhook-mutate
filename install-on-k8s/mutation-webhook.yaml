@@ -1,0 +1,38 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: deploy-anno
+webhooks:
+- name: deploy-anno.default.svc
+  namespaceSelector:
+    matchExpressions:
+      - key: name
+        operator: NotIn
+        values:
+        - kube-system
+        - istio-system
+      - key: name
+        operator: In
+        values:
+        - default
+  rules:
+  - apiGroups:
+    - "apps"
+    apiVersions:
+    - "v1"
+    operations:
+    - CREATE
+    resources:
+    - deployments
+    scope: "Namespaced"
+  clientConfig:
+    service:
+      namespace: default
+      name: deploy-anno
+      path: /mutation
+      port: 8180
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURGekNDQWYrZ0F3SUJBZ0lKQU9NSFphaERZd1NzTUEwR0NTcUdTSWIzRFFFQkN3VUFNQ0l4SURBZUJnTlYKQkFNTUYyUmxjR3h2ZVMxaGJtNXZMbVJsWm1GMWJIUXVjM1pqTUI0WERUSXpNREl5TkRBeU1Ua3lOVm9YRFRNegpNREl5TVRBeU1Ua3lOVm93SWpFZ01CNEdBMVVFQXd3WFpHVndiRzk1TFdGdWJtOHVaR1ZtWVhWc2RDNXpkbU13CmdnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURKd1VRLzlEMElCc3RscmkyMWMvRHcKWHkyc0g0aHVodWdCTWlwUjhHckpFTHMvSjhkMmpNdmROOFhIL2RrYzdRdzh5c1NPZGp2RDdWMnltVHJDWXg3awpqb0g2NjlWSzZla0UwYW0zMlY1emN6Vk1sWHhKOS94T3ZjT3N2cGQ0VmtaTmo5aDBTaWVFR29nTjJockdBd3pxCkhIa20zODNoM2VaUGx5UC9uaEZ4QkFEV0Jmd3hyRUluUzV3SkVUanorOE9ZSW9QWURCS0lPaUR3V0M0VVZvNmMKMTB1cGVvNVdQUk94WFB3dTZyWFpGTk1XNUxRSmhPMko0WkU3TFJhMmZ1eEI4M0x3YTJSc0NQZHNjRktZbDdleAp1YlBwNllGK0xFKyttWU1Tc3FrdkZkYTF0K25DMTJrK1RSUHloaW83YVFvMnRoZUlDODMwaVpQY0tJVzBkNDhKCkFnTUJBQUdqVURCT01CMEdBMVVkRGdRV0JCUVNPZHU3am9XakpUTEI1b2JCM3o0N2RPT2IvakFmQmdOVkhTTUUKR0RBV2dCUVNPZHU3am9XakpUTEI1b2JCM3o0N2RPT2IvakFNQmdOVkhSTUVCVEFEQVFIL01BMEdDU3FHU0liMwpEUUVCQ3dVQUE0SUJBUUFDWWtkcHRPb0QzVHhLbmplemJFSENSUER3bmV5eEN6VnJ0MEhMNlZnaXNacWNDUGt5Cit5dmRvQ0RJM2hVdDlZTkYxQnFmdHNWQnBqMWs5YkFJQTFNMFYxWVBYR3EyYkswVmhNT05RSnZyWFVCWC8xTjAKMGV1QlYxNFBRcThjR1c5UnlTREdtbGtvODFNRUpHTDJsT2pTaDkwcWdYbGhvalI3c1UvTFY2dWxwcWZQWmxEeAoxeG82Zk85WDE1aVg4Y0lGNmhyc1pWYUJZODlkK3JKSHhlVDB4Vk9lbzZ1a1BnM0lyTWJETWJKQk1SK2p2VWtZClgrOTc0N2Z2Y1J5Nm1MV3Y1cVBiK0Zxb0RRTHJZZE1CWUlEZTNqd1NPblU4dlY5TTFXMFMzYWh6UnNkaEtlNWcKNW50WG1vZFR3ZnZaSXIzSFJRVTg4NjA5Zmh5N2I5R2RDL1hWCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  admissionReviewVersions:
+  - v1
+  sideEffects: None
+  timeoutSeconds: 10
