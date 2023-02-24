@@ -45,7 +45,6 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 	}
 
 	arReq := ar.Request
-	arRes := ar.Response
 
 	if arReq == nil {
 		sendError(fmt.Errorf("arReq == nil"), w)
@@ -97,7 +96,7 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 
 	// update arRes
 	patchTypeJson := v1.PatchTypeJSONPatch
-	arRes = &v1.AdmissionResponse{
+	arRes := &v1.AdmissionResponse{
 		Allowed:   true,
 		UID:       ar.Request.UID,
 		PatchType: &patchTypeJson,
