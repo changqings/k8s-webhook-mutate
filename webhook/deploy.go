@@ -96,13 +96,15 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update arRes
-	arRes.Allowed = true
-	arRes.UID = ar.Request.UID
-	*arRes.PatchType = v1.PatchTypeJSONPatch
-	arRes.Patch = patchDeployByte
-
-	arRes.Result = &metav1.Status{
-		Status: metav1.StatusSuccess,
+	patchTypeJson := v1.PatchTypeJSONPatch
+	arRes = &v1.AdmissionResponse{
+		Allowed:   true,
+		UID:       ar.Request.UID,
+		PatchType: &patchTypeJson,
+		Patch:     patchDeployByte,
+		Result: &metav1.Status{
+			Status: metav1.StatusSuccess,
+		},
 	}
 
 	// update arRes to w
