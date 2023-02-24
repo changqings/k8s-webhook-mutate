@@ -38,6 +38,7 @@ func main() {
 		healthCheck()
 	}()
 
+	log.Println("Mute http server start running on port :8443 ...")
 	log.Fatal(server.ListenAndServeTLS(tlsCrt, tlsKey))
 
 }
