@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	admissionv1 "k8s.io/api/admission/v1"
-	v1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -48,73 +47,75 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 
 	//
 	var ar admissionv1.AdmissionReview
-	arRes := admissionv1.AdmissionResponse{}
 	if _, _, err := deserializer.Decode(body, nil, &ar); err != nil {
 		sendError(err, w)
+		return
 	}
 
-	arReq := ar.Request
-
-	if arReq == nil {
-		sendError(fmt.Errorf("arReq == nil"), w)
+	if ar.Request == nil {
+		sendError(fmt.Errorf("ar.Request == nil"), w)
 		return
 	}
 
 	// try to get deployment object, and modify it
 	var deploy *appsv1.Deployment
-	if err := json.Unmarshal(arReq.Object.Raw, &deploy); err != nil {
+	if err := json.Unmarshal(ar.Request.Object.Raw, &deploy); err != nil {
 		sendError(err, w)
 		return
 	}
 
+	// if check no need to update, do noting of ar.respon, else patch it with jsonPatch
 	if !(deploy.Namespace == d.Namespace && deploy.Name == d.Name) {
-		log.Printf("deploy %s/%s not match %s/%s, skip webhook mutation", deploy.Namespace, deploy.Name, d.Namespace, d.Name)
-		return
-	}
+		log.Printf("deploy %s/%s not match %s/%s, skip webhook mutation, skip update", deploy.Namespace, deploy.Name, d.Namespace, d.Name)
+		ar.Response = &admissionv1.AdmissionResponse{
+			Allowed: true,
+			UID:     ar.Request.UID,
+		}
+	} else {
+		//
+		var patchDeployAnno *common.Patch
+		hasAnnos := len(deploy.ObjectMeta.Annotations) > 0
+		for k, v := range someAnnoMap {
+			if !hasAnnos {
+				patchDeployAnno = &common.Patch{
+					OP:    "add",
+					Path:  "/metadata/annotations",
+					Value: someAnnoMap,
+				}
+			} else {
+				patchDeployAnno = &common.Patch{
+					OP:    "add",
+					Path:  fmt.Sprintf("/metadata/annotations/%s", k),
+					Value: v,
+				}
+			}
 
-	//
-	var patchDeployAnno *common.Patch
-	hasAnnos := len(deploy.ObjectMeta.Annotations) > 0
-	for k, v := range someAnnoMap {
-		if !hasAnnos {
-			patchDeployAnno = &common.Patch{
-				OP:    "add",
-				Path:  "/metadata/annotations",
-				Value: someAnnoMap,
-			}
-		} else {
-			patchDeployAnno = &common.Patch{
-				OP:    "add",
-				Path:  fmt.Sprintf("/metadata/annotations/%s", k),
-				Value: v,
-			}
+		}
+		patchDeployAnno = &common.Patch{
+			OP:    "add",
+			Path:  "/metadata/annotations",
+			Value: someAnnoMap,
+		}
+
+		patchDeployByte, err := json.Marshal(patchDeployAnno)
+		if err != nil {
+			sendError(err, w)
+			return
+		}
+
+		// update arRes
+		ar.Response = &admissionv1.AdmissionResponse{
+			Allowed: true,
+			UID:     ar.Request.UID,
+			Patch:   patchDeployByte,
+			Result: &metav1.Status{
+				Status: metav1.StatusSuccess,
+			},
 		}
 
 	}
-	patchDeployAnno = &common.Patch{
-		OP:    "add",
-		Path:  "/metadata/annotations",
-		Value: someAnnoMap,
-	}
 
-	patchDeployByte, err := json.Marshal(patchDeployAnno)
-	if err != nil {
-		sendError(err, w)
-		return
-	}
-
-	// update arRes
-	arRes = &v1.AdmissionResponse{
-		Allowed: true,
-		UID:     ar.Request.UID,
-		Patch:   patchDeployByte,
-		Result: &metav1.Status{
-			Status: metav1.StatusSuccess,
-		},
-	}
-
-	// update ar to w
-	ar.Response = arRes
+	// rewrite ar back to webhook respon
 
 	responBody, err := json.Marshal(ar)
 	if err != nil {
