@@ -1,4 +1,4 @@
-FROM  lizhi.tencentcloudcr.com/lzwk/ubuntu:v20.04-https
+FROM  ccr.ccs.tencentyun.com/lzwk/ubuntu:v20.04-https
 
 
 WORKDIR /app
