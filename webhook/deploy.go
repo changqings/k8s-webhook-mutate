@@ -10,7 +10,6 @@ import (
 
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 )
@@ -73,31 +72,29 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		//
-		var patchDeployAnno *common.Patch
+		var patchDeployAnnos []common.Patch
+		var patchDeployAnno common.Patch
 		hasAnnos := len(deploy.ObjectMeta.Annotations) > 0
 		for k, v := range someAnnoMap {
 			if !hasAnnos {
-				patchDeployAnno = &common.Patch{
+				patchDeployAnno = common.Patch{
 					OP:    "add",
 					Path:  "/metadata/annotations",
 					Value: someAnnoMap,
 				}
+				patchDeployAnnos = append(patchDeployAnnos, patchDeployAnno)
 			} else {
-				patchDeployAnno = &common.Patch{
+				patchDeployAnno = common.Patch{
 					OP:    "add",
 					Path:  fmt.Sprintf("/metadata/annotations/%s", k),
 					Value: v,
 				}
+				patchDeployAnnos = append(patchDeployAnnos, patchDeployAnno)
 			}
 
 		}
-		patchDeployAnno = &common.Patch{
-			OP:    "add",
-			Path:  "/metadata/annotations",
-			Value: someAnnoMap,
-		}
 
-		patchDeployByte, err := json.Marshal(patchDeployAnno)
+		patchDeployByte, err := json.Marshal(patchDeployAnnos)
 		if err != nil {
 			sendError(err, w)
 			return
@@ -112,9 +109,6 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 				pathType := admissionv1.PatchTypeJSONPatch
 				return &pathType
 			}(),
-			Result: &metav1.Status{
-				Status: metav1.StatusSuccess,
-			},
 		}
 
 	}
