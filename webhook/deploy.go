@@ -69,6 +69,7 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 		log.Printf("deploy %s/%s not match %s/%s, skip webhook mutation, skip update", deploy.Namespace, deploy.Name, d.Namespace, d.Name)
 		ar.Response = &admissionv1.AdmissionResponse{
 			Allowed: true,
+			UID:     ar.Request.UID,
 		}
 	} else {
 		//
@@ -107,6 +108,10 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 			Allowed: true,
 			UID:     ar.Request.UID,
 			Patch:   patchDeployByte,
+			PatchType: func() *admissionv1.PatchType {
+				pathType := admissionv1.PatchTypeJSONPatch
+				return &pathType
+			}(),
 			Result: &metav1.Status{
 				Status: metav1.StatusSuccess,
 			},
