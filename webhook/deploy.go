@@ -57,18 +57,20 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// try to get deployment object, and modify it
-	var deploy *appsv1.Deployment
-	if err := json.Unmarshal(ar.Request.Object.Raw, &deploy); err != nil {
-		sendError(err, w)
-		return
-	}
-
 	// ar response handler logic in this func
-	ar.Response = d.Deployment(&ar, deploy)
+	// create a new adminssionReview for response
+	reviewRes := d.Deployment(&ar)
+	resReview := admissionv1.AdmissionReview{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: ar.APIVersion,
+			Kind:       ar.Kind,
+		},
+	}
+	resReview.Response = reviewRes
+	resReview.Request = ar.Request
 
-	// rewrite ar back to webhook respon
-	responBody, err := json.Marshal(&ar.Response)
+	// rewrite resReview back to webhook respon
+	responBody, err := json.Marshal(resReview)
 	if err != nil {
 		sendError(err, w)
 		return
@@ -80,7 +82,7 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 		sendError(err, w)
 		return
 	}
-	log.Printf("Muta deployment %s/%s success", deploy.Namespace, deploy.Name)
+	log.Printf("Exec mutation webhook success")
 }
 
 func sendError(err error, w http.ResponseWriter) {
@@ -89,7 +91,17 @@ func sendError(err error, w http.ResponseWriter) {
 	fmt.Fprintf(w, "%s", err)
 }
 
-func (d Deploy) Deployment(ar *admissionv1.AdmissionReview, deploy *appsv1.Deployment) *admissionv1.AdmissionResponse {
+func (d Deploy) Deployment(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
+	// try to get deployment object, and modify it
+	var deploy *appsv1.Deployment
+	if err := json.Unmarshal(ar.Request.Object.Raw, &deploy); err != nil {
+		log.Printf("Unmarshal ar.Request.Object.Raw to deploy err:%v\n", err)
+		ar.Response = &admissionv1.AdmissionResponse{
+			Allowed: true,
+			UID:     ar.Request.UID,
+		}
+		return ar.Response
+	}
 	// if check no need to update, do noting of ar.respon, else patch it with jsonPatch
 	if !(deploy.Namespace == d.Namespace && deploy.Name == d.Name) {
 		log.Printf("deploy %s/%s not match %s/%s, skip webhook mutation, skip update", deploy.Namespace, deploy.Name, d.Namespace, d.Name)
@@ -99,6 +111,7 @@ func (d Deploy) Deployment(ar *admissionv1.AdmissionReview, deploy *appsv1.Deplo
 		}
 		return ar.Response
 	}
+	log.Printf("deployment %s/%s exec mutation webhook ...", deploy.Namespace, deploy.Name)
 
 	var patchDeployAnnos []common.Patch
 	var patchDeployAnno common.Patch
