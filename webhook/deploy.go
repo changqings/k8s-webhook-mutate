@@ -67,7 +67,7 @@ func (d Deploy) AddAnno(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	resReview.Response = reviewRes
-	resReview.Request = ar.Request
+	// resReview.Request = ar.Request
 
 	// rewrite resReview back to webhook respon
 	responBody, err := json.Marshal(resReview)
