@@ -1,5 +1,14 @@
 # k8s-webhook-test
 
+```
+use cert-manager generate tls
+生成ca时要使用一个ca-tls
+openssl genrsa -out ca.key 2048
+openssl req -x509 --newkey rsa:2048 -new -nodes -key ca.key -days 3650 -reqexts v3_req -extensions v3_ca -out ca.crt
+kubectl create secert tls ca-key-pair --cert=ca.crt --key=ca.key --namespace=default
+kubectl apply -f install-on-k8s/issuer.yaml
+```
+
 调试过程总结:
 - 了解webhook的执行流程及所处的环节
 - 了解net/http包的使用,了解handler{w,r}的处理逻辑，接收请求数据，处理后，写入response
