@@ -5,6 +5,7 @@ metadata:
   namespace: default
 spec:
   secretName: deploy-anno-tls
+  durations: 867600h
   issuerRef:
     name: ca-issuer
     # We can reference ClusterIssuers by changing the kind here.
