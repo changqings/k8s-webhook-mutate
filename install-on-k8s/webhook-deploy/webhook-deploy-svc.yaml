@@ -68,6 +68,10 @@ spec:
             memory: 128Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /app/config/tls/
+          name: config-tls
+          readOnly: true
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       imagePullSecrets:
@@ -76,6 +80,15 @@ spec:
       securityContext:
         runAsUser: 0
       terminationGracePeriodSeconds: 30
+      volumes:
+      - secret:
+          secretName: deploy-anno-tls
+          items:
+          - key: tls.key
+            path: tls.key
+          - key: tls.crt
+            path: tls.crt
+        name: config-tls
 ---
 apiVersion: v1
 kind: Service

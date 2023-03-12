@@ -2,39 +2,8 @@
 
 ## use cert-manager generate tls
 ```
-## use SelfSigned issuer to generate ca issuer
----
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: selfsigned-issuer
-spec:
-  selfSigned: {}
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: selfsigned-ca
-spec:
-  isCA: true
-  commonName: selfsigned-ca
-  secretName: root-secret
-  duration: 87600h
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  issuerRef:
-    name: selfsigned-issuer
-    kind: ClusterIssuer
-    group: cert-manager.io
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: local-ca-issuer
-spec:
-  ca:
-    secretName: root-secret
+## use SelfSigned issuer to generate ca issuer,
+# see install-on-k8s/issuer.yaml
 ```
 调试过程总结:
 - 了解webhook的执行流程及所处的环节
