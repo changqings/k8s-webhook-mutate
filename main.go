@@ -53,6 +53,8 @@ func main() {
 
 }
 
+// k8s secret volume mount will decode base64, so this is not needed
+// just keep it for the operation of os file
 func base64FileToStringFile(file string) (string, error) {
 
 	fileByte, err := os.ReadFile(file)
