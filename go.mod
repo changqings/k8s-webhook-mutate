@@ -1,6 +1,6 @@
-module k8s-webhook-test
+module k8s-webhook-mutate
 
-go 1.19
+go 1.22
 
 require (
 	k8s.io/api v0.26.1

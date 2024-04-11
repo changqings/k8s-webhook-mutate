@@ -27,68 +27,68 @@ spec:
         app: deploy-anno
     spec:
       containers:
-      - command:
-        - k8s-webhook-test
-        image: ccr.ccs.tencentyun.com/lzwk/ops-test:deploy-anno-v0.10
-        imagePullPolicy: Always
-        name: app
-        ports:
-        - containerPort: 8081
-          name: http-check
-          protocol: TCP
-        - containerPort: 8443
-          name: https
-          protocol: TCP
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /health_check
-            port: http-check
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 15
-          successThreshold: 1
-          timeoutSeconds: 4
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /health_check
-            port: http-check
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 15
-          successThreshold: 1
-          timeoutSeconds: 4
-        resources:
-          limits:
-            cpu: 1
-            memory: 512Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /app/config/tls/
-          name: config-tls
-          readOnly: true
+        - command:
+            - k8s-webhook-mutate
+          image: ccr.ccs.tencentyun.com/xxx/ops-test:deploy-anno-v0.10
+          imagePullPolicy: Always
+          name: app
+          ports:
+            - containerPort: 8081
+              name: http-check
+              protocol: TCP
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health_check
+              port: http-check
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 4
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health_check
+              port: http-check
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 4
+          resources:
+            limits:
+              cpu: 1
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /app/config/tls/
+              name: config-tls
+              readOnly: true
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       imagePullSecrets:
-      - name: qcloudregistrykey
+        - name: qcloudregistrykey
       schedulerName: default-scheduler
       securityContext:
         runAsUser: 0
       terminationGracePeriodSeconds: 30
       volumes:
-      - secret:
-          secretName: deploy-anno-tls
-          items:
-          - key: tls.key
-            path: tls.key
-          - key: tls.crt
-            path: tls.crt
-        name: config-tls
+        - secret:
+            secretName: deploy-anno-tls
+            items:
+              - key: tls.key
+                path: tls.key
+              - key: tls.crt
+                path: tls.crt
+          name: config-tls
 ---
 apiVersion: v1
 kind: Service
@@ -99,12 +99,12 @@ metadata:
   namespace: default
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ports:
-  - name: https-443
-    port: 443
-    protocol: TCP
-    targetPort: https
+    - name: https-443
+      port: 443
+      protocol: TCP
+      targetPort: https
   selector:
     app: deploy-anno
   sessionAffinity: None

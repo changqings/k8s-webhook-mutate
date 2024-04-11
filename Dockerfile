@@ -1,5 +1,4 @@
-FROM  ccr.ccs.tencentyun.com/lzwk/ubuntu:v20.04-https
-
+FROM  debian:12.5
 
 WORKDIR /app
 
@@ -7,5 +6,5 @@ WORKDIR /app
 #COPY config config
 
 
-ADD k8s-webhook-test /usr/local/bin/
+ADD k8s-webhook-mutate /usr/local/bin/
 

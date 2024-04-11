@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/base64"
-	"k8s-webhook-test/webhook"
+	"k8s-webhook-mutate/webhook"
 	"log"
 	"net/http"
 	"os"
